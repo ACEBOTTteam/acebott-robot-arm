@@ -10,7 +10,9 @@
         "AcebottRobotShield.ts",
         "AcebottArmApp.ts",
         "_locales/robotshield-strings.json",
-        "_locales/zh-cn/robotshield-strings.json"
+        "_locales/zh-cn/robotshield-strings.json",
+        "_locales/acebott-robot-arm-strings.json",
+        "_locales/zh-cn/acebott-robot-arm-strings.json"
     ],
     "public": true,
     "targetVersions": {
