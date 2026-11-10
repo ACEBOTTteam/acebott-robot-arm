@@ -1,5 +1,3 @@
-// APP 字符串接收、指令解析、机械臂动作与记忆封装；蓝牙通信由主程序提供。
-// XYZ 调用当前机械臂库；回位不更改 XYZ 原点。
 namespace Acebott {
     export enum ArmAppSide {
         //% block="left"
@@ -134,7 +132,7 @@ namespace Acebott {
         appCancelXYZ()
         appClearManual()
         appStopPlayback()
-        // 按底盘、肩部、肘部、夹爪的顺序，每隔至少 50 ms 向 90° 移动最多 1°。
+        // 保留原来的回位顺序，但每次更新只执行一个关节、等待由循环安排。
         // 新的手动或回放指令可取消回位，避免动作争用。
         appResetStep = 0
         appResetting = true
@@ -151,13 +149,8 @@ namespace Acebott {
         if (control.millis() < appResetAt) {
             return
         }
-        let current = appAngles[appResetStep]
-        let target = current + Math.constrain(90 - current, -1, 1)
-        appSetJoint(appResetStep, target)
-        // 到位后再复位下一关节；目标被限位拒绝时也前进，最后报告失败。
-        if (appAngles[appResetStep] == 90 || appAngles[appResetStep] != target) {
-            appResetStep += 1
-        }
+        appSetJoint(appResetStep, 90)
+        appResetStep += 1
         if (appResetStep == 4) {
             appResetting = false
             for (let joint = 0; joint < 4; joint++) {
@@ -172,7 +165,7 @@ namespace Acebott {
                 appReportAngles()
             }
         } else {
-            appResetAt = control.millis() + 50
+            appResetAt = control.millis() + 100
         }
     }
 
@@ -196,7 +189,7 @@ namespace Acebott {
 
     function appManualUpdate(): void {
         // 高频滑块指令只保留各关节的最新值，每 120 ms 应用一次。
-        if (control.millis() - appLastSlider >= 120) {
+        if (control.millis() - appLastSlider >= 20) {
             for (let index = 0; index < 4; index++) {
                 let joint = appOrder[index]
                 if (appSliderPending[joint]) {
@@ -629,3 +622,4 @@ namespace Acebott {
         appUpdating = false
     }
 }
+
